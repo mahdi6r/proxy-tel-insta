@@ -93,7 +93,62 @@ app.all("/graph/*", async (req, res) => {
     }
 
 });
+// =========================
+// Bale Test
+// =========================
 
+app.post("/bale-test", async (req, res) => {
+
+    try {
+
+        console.log("===== WEBHOOK RECEIVED =====");
+        console.log(JSON.stringify(req.body, null, 2));
+
+        const photo = req.body?.message?.photo?.[0];
+
+        if (!photo) {
+            return res.json({
+                success: false,
+                message: "No photo found"
+            });
+        }
+
+        const fileId = photo.file_id;
+
+        console.log("FILE ID:", fileId);
+
+        const response = await fetch(
+            `https://tapi.bale.ai/bot${process.env.BALE_TOKEN}/getFile`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    file_id: fileId
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        console.log("GETFILE RESPONSE:");
+        console.log(JSON.stringify(data, null, 2));
+
+        res.json(data);
+
+    } catch (e) {
+
+        console.error(e);
+
+        res.status(500).json({
+            success: false,
+            error: e.message
+        });
+
+    }
+
+});
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
